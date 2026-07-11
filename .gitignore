@@ -1,7 +1,7 @@
 # working files (contain client data - never commit)
-mapping.xlsx
-sources/
-staging_output.xlsx
+/mapping.xlsx
+/sources/
+/staging_output.xlsx
 
 # python
 __pycache__/
