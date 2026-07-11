@@ -209,22 +209,28 @@ def normalize(text):
     return [_stem(w) for w in words if w not in STOPWORDS]
 
 
-def similarity(a, b):
-    """Max of sequence similarity and content-word overlap - catches both
-    near-identical wording and same-concept-different-words."""
-    ta, tb = normalize(a), normalize(b)
-    seq = SequenceMatcher(None, " ".join(ta), " ".join(tb)).ratio()
-    sa, sb = set(ta), set(tb)
-    overlap = len(sa & sb) / min(len(sa), len(sb)) if sa and sb else 0.0
-    return max(seq, overlap)
+def _overlap(a, b):
+    sa, sb = set(a), set(b)
+    return len(sa & sb) / min(len(sa), len(sb)) if sa and sb else 0.0
+
+
+def similarity(rec_a, rec_b):
+    """Max of: sequence similarity on full text, content-word overlap on full
+    text, and content-word overlap on titles alone. Titles are compared
+    separately because long descriptions dilute overlap on the same concept."""
+    full_a = normalize(rec_a["title"] + " " + rec_a["description"])
+    full_b = normalize(rec_b["title"] + " " + rec_b["description"])
+    seq = SequenceMatcher(None, " ".join(full_a), " ".join(full_b)).ratio()
+    return max(seq,
+               _overlap(full_a, full_b),
+               _overlap(normalize(rec_a["title"]), normalize(rec_b["title"])))
 
 
 def find_dupes(records):
     pairs = []
     for i in range(len(records)):
         for j in range(i + 1, len(records)):
-            score = similarity(records[i]["title"] + " " + records[i]["description"],
-                               records[j]["title"] + " " + records[j]["description"])
+            score = similarity(records[i], records[j])
             if score >= DEDUPE_THRESHOLD:
                 pairs.append((i, j, score))
     return sorted(pairs, key=lambda p: -p[2])
