@@ -11,8 +11,9 @@ Built by Tosin Aina - Northbridge (https://github.com/Tozino22)
 License: MIT
 
 Usage:
-    python consolidate_risks.py init   # create mapping.xlsx template + sources/ folder
-    python consolidate_risks.py run    # ingest everything per mapping.xlsx -> staging_output.xlsx
+    python consolidate_risks.py init     # create mapping.xlsx template + sources/ folder
+    python consolidate_risks.py automap  # scan sources/ and auto-guess the mapping (confirm before running!)
+    python consolidate_risks.py run      # ingest everything per mapping.xlsx -> staging_output.xlsx
 
 Requires: Python 3.9+ and openpyxl  (pip install openpyxl)
 """
@@ -236,6 +237,123 @@ def find_dupes(records):
     return sorted(pairs, key=lambda p: -p[2])
 
 
+# --- automap: guess column mappings from headers + data samples ---
+
+def _header_row(ws):
+    for r in range(1, min(6, ws.max_row + 1)):
+        texts = [c for c in next(ws.iter_rows(min_row=r, max_row=r, values_only=True))
+                 if isinstance(c, str) and c.strip()]
+        if len(texts) >= 2:
+            return r
+    return 1
+
+
+def _sample_values(ws, col, header_row, n=10):
+    vals = []
+    for r in range(header_row + 1, min(header_row + 1 + n, ws.max_row + 1)):
+        v = ws.cell(row=r, column=col).value
+        if v is not None and str(v).strip():
+            vals.append(v)
+    return vals
+
+
+def _mostly_numeric(vals):
+    if not vals:
+        return False
+    hits = sum(1 for v in vals if str(v).strip().replace(".", "", 1).isdigit())
+    return hits >= max(1, len(vals) * 0.7)
+
+
+def _mostly_hml(vals):
+    if not vals:
+        return False
+    hits = sum(1 for v in vals if str(v).strip().upper() in HML_MAP)
+    return hits >= max(1, len(vals) * 0.7)
+
+
+def guess_mapping(path):
+    wb = load_workbook(path, data_only=True)
+    ws = wb.active
+    hr = _header_row(ws)
+    guess = {"sheet": "", "header_row": hr, "col_title": "", "col_description": "",
+             "col_likelihood": "", "col_impact": "", "col_rating": "",
+             "col_owner": "", "col_ref": "", "scale": ""}
+    numeric_max = 0
+
+    headers = next(ws.iter_rows(min_row=hr, max_row=hr, values_only=True))
+    for idx, h in enumerate(headers, 1):
+        if not isinstance(h, str) or not h.strip():
+            continue
+        name = h.strip().lower()
+        letter = get_column_letter(idx)
+        vals = _sample_values(ws, idx, hr)
+
+        if any(k in name for k in ("descript", "detail")):
+            guess["col_description"] = guess["col_description"] or letter
+        elif any(k in name for k in ("likelihood", "probability", "prob")):
+            guess["col_likelihood"] = guess["col_likelihood"] or letter
+            numeric_max = max(numeric_max, *[int(float(v)) for v in vals if str(v).strip().replace(".", "", 1).isdigit()] or [0])
+        elif any(k in name for k in ("impact", "consequence")):
+            guess["col_impact"] = guess["col_impact"] or letter
+            numeric_max = max(numeric_max, *[int(float(v)) for v in vals if str(v).strip().replace(".", "", 1).isdigit()] or [0])
+        elif any(k in name for k in ("severity", "rating", "risk level", "priority")):
+            if _mostly_hml(vals):
+                guess["col_rating"] = guess["col_rating"] or letter
+            elif _mostly_numeric(vals):
+                guess["col_impact"] = guess["col_impact"] or letter
+                numeric_max = max(numeric_max, *[int(float(v)) for v in vals if str(v).strip().replace(".", "", 1).isdigit()] or [0])
+        elif any(k in name for k in ("owner", "assigned", "responsible", "who")):
+            guess["col_owner"] = guess["col_owner"] or letter
+        elif name in ("id", "ref", "no", "#", "number") or name.endswith(" id"):
+            guess["col_ref"] = guess["col_ref"] or letter
+        elif any(k in name for k in ("risk", "finding", "issue", "title", "name")):
+            guess["col_title"] = guess["col_title"] or letter
+
+    if guess["col_rating"] and not (guess["col_likelihood"] or guess["col_impact"]):
+        guess["scale"] = "HML"
+    elif numeric_max and numeric_max <= 3:
+        guess["scale"] = "3x3"
+    elif numeric_max == 4:
+        guess["scale"] = "4x4"
+    else:
+        guess["scale"] = "5x5"
+    return guess
+
+
+def cmd_automap():
+    if not os.path.isdir(SOURCES_DIR):
+        sys.exit(f"No {SOURCES_DIR}/ folder found. Run:  python consolidate_risks.py init")
+    files = [f for f in sorted(os.listdir(SOURCES_DIR)) if f.lower().endswith((".xlsx", ".xlsm"))]
+    if not files:
+        sys.exit(f"No Excel files found in {SOURCES_DIR}/")
+    target = MAPPING_FILE if not os.path.exists(MAPPING_FILE) else "mapping_auto.xlsx"
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "mapping"
+    for i, (name, width, _) in enumerate(MAPPING_HEADERS, 1):
+        c = ws.cell(row=1, column=i, value=name)
+        c.font = Font(bold=True, color="FFFFFF")
+        c.fill = PatternFill("solid", fgColor=TEAL)
+        ws.column_dimensions[get_column_letter(i)].width = width
+
+    print(f"Scanning {len(files)} file(s) in {SOURCES_DIR}/ ...")
+    for f in files:
+        g = guess_mapping(os.path.join(SOURCES_DIR, f))
+        register_name = os.path.splitext(f)[0].replace("_", " ")
+        ws.append([register_name, f, g["sheet"], g["header_row"], g["col_title"],
+                   g["col_description"], g["col_likelihood"], g["col_impact"],
+                   g["col_rating"], g["col_owner"], g["col_ref"], g["scale"]])
+        missing = " <- CHECK: no title column found!" if not g["col_title"] else ""
+        print(f"  {f}: title={g['col_title'] or '?'} scale={g['scale']}{missing}")
+
+    wb.save(target)
+    print(f"\nGuesses written to {target}")
+    print("IMPORTANT: open it and CONFIRM every row before running - guesses are starting points.")
+    if target != MAPPING_FILE:
+        print(f"(An existing {MAPPING_FILE} was left untouched - compare and merge manually.)")
+
+
 def cmd_run():
     if not os.path.exists(MAPPING_FILE):
         sys.exit(f"No {MAPPING_FILE} found. Run:  python consolidate_risks.py init")
@@ -311,6 +429,8 @@ if __name__ == "__main__":
     cmd = sys.argv[1].lower() if len(sys.argv) > 1 else ""
     if cmd == "init":
         cmd_init()
+    elif cmd == "automap":
+        cmd_automap()
     elif cmd == "run":
         cmd_run()
     else:
