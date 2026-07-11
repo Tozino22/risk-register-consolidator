@@ -1,0 +1,12 @@
+# working files (contain client data - never commit)
+mapping.xlsx
+sources/
+staging_output.xlsx
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# office temp files
+~$*
