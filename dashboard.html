@@ -1,0 +1,70 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShieldGRC · Risk Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--panel:#fff;--ink:#16202e;--soft:#54637a;--faint:#8291a5;--line:#e2e8f0;--accent:#0d8b86;--ai:#7c3aed}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.side{background:#0f1b2d;color:#cdd8e8;padding:22px 16px}
+.side .brand{font-family:Sora;font-weight:700;font-size:17px;color:#fff;display:flex;gap:9px;align-items:center;margin-bottom:24px}
+.side .brand .mk{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--ai));display:grid;place-items:center;font-size:14px}
+.side .grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6c7c94;margin:16px 0 6px}
+.side a{display:block;color:#cdd8e8;text-decoration:none;padding:8px 10px;border-radius:8px;font-size:14px;font-weight:500}
+.side a.on,.side a:hover{background:rgba(255,255,255,.08);color:#fff}
+.main{padding:26px 30px}
+.h{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.h h1{font-family:Sora;font-size:22px;margin:0}.h .src{font-size:12px;color:var(--faint)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 10px 26px -20px rgba(20,36,58,.4)}
+.kpi .n{font-family:Sora;font-weight:700;font-size:28px}.kpi .l{font-size:12.5px;color:var(--faint);margin-top:3px}
+.kpi.red .n{color:#c0392b}.kpi.ai .n{color:var(--ai)}.kpi.amber .n{color:#c9a227}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:0 10px 26px -20px rgba(20,36,58,.4)}
+.card h3{font-family:Sora;font-size:14px;margin:0 0 14px}
+.donutwrap{display:flex;gap:20px;align-items:center}
+.donut{width:130px;height:130px;border-radius:50%;background:conic-gradient(#c0392b 0.0% 45.8%, #e07b39 45.8% 70.8%, #c9a227 70.8% 95.8%, #2f8f5b 95.8% 100.0%);flex:none;
+  -webkit-mask:radial-gradient(circle 40px at center,transparent 98%,#000);mask:radial-gradient(circle 40px at center,transparent 98%,#000)}
+.legrow{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);margin-bottom:6px}
+.legrow b{margin-left:auto;color:var(--ink)}.dot{width:10px;height:10px;border-radius:3px}
+.brow{display:grid;grid-template-columns:130px 1fr 34px;gap:10px;align-items:center;margin-bottom:9px;font-size:13px}
+.blabel{color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btrack{height:9px;background:#eef2f6;border-radius:6px;overflow:hidden}.btrack span{display:block;height:100%}
+.bval{text-align:right;font-weight:600;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+.pill{padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600}
+.mono{font-family:ui-monospace,monospace}.muted{color:var(--faint)}
+.chip{display:inline-block;background:#f1f5f9;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12px;color:var(--soft);margin:0 6px 6px 0}
+.chip b{color:var(--accent)}
+.note{font-size:11.5px;color:var(--faint);margin-top:14px}
+@media(max-width:820px){.app{grid-template-columns:1fr}.side{display:none}.kpis{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+</style></head><body><div class="app">
+<aside class="side">
+  <div class="brand"><span class="mk">◆</span> ShieldGRC</div>
+  <div class="grp">Overview</div><a class="on">Dashboard</a>
+  <div class="grp">Risk</div><a>Risk Register</a><a>Risk Assessment</a>
+  <div class="grp">Compliance</div><a>Control Testing</a><a>Frameworks</a><a>AI Management</a>
+  <div class="grp">Governance</div><a>Reports</a><a>Audit Trail</a>
+</aside>
+<main class="main">
+  <div class="h"><h1>Risk dashboard</h1><div class="src">Source: staging_enriched.xlsx</div></div>
+  <div class="kpis">
+    <div class="kpi"><div class="n">24</div><div class="l">Total risks staged</div></div>
+    <div class="kpi red"><div class="n">17</div><div class="l">Critical + High</div></div>
+    <div class="kpi amber"><div class="n">24</div><div class="l">Need owner review</div></div>
+    <div class="kpi ai"><div class="n">14</div><div class="l">AI / agentic risks</div></div>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>Risk by severity</h3>
+      <div class="donutwrap"><div class="donut"></div><div><div class="legrow"><span class="dot" style="background:#c0392b"></span>Critical<b>11</b></div><div class="legrow"><span class="dot" style="background:#e07b39"></span>High<b>6</b></div><div class="legrow"><span class="dot" style="background:#c9a227"></span>Medium<b>6</b></div><div class="legrow"><span class="dot" style="background:#2f8f5b"></span>Low<b>1</b></div></div></div></div>
+    <div class="card"><h3>Risk by source register</h3><div class="brow"><div class="blabel">AI &amp; Agentic Risks</div><div class="btrack"><span style="width:100%;background:#0d8b86"></span></div><div class="bval">14</div></div><div class="brow"><div class="blabel">IT Security Register</div><div class="btrack"><span style="width:35%;background:#0d8b86"></span></div><div class="bval">5</div></div><div class="brow"><div class="blabel">Ops Risk Log</div><div class="btrack"><span style="width:35%;background:#0d8b86"></span></div><div class="bval">5</div></div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px"><h3>Top risks by inherent score</h3>
+    <table><thead><tr><th>Risk</th><th>Severity</th><th>Score</th><th>Register</th><th>Category</th></tr></thead>
+    <tbody><tr><td>Ransomware attack</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">20</td><td class="muted">IT Security Register</td><td class="muted">Malware / Ransomware</td></tr><tr><td>Phishing / credential theft</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">20</td><td class="muted">IT Security Register</td><td class="muted">Social Engineering</td></tr><tr><td>Prompt injection into production LLM</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">20</td><td class="muted">AI &amp; Agentic Risks</td><td class="muted">AI / LLM</td></tr><tr><td>Cyber attack / hackers get into our systems</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">16</td><td class="muted">Ops Risk Log</td><td class="muted">General</td></tr><tr><td>Cannot find enough staff during peak season</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">16</td><td class="muted">Ops Risk Log</td><td class="muted">General</td></tr><tr><td>Reliance on hallucinated output</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">16</td><td class="muted">AI &amp; Agentic Risks</td><td class="muted">AI Risk</td></tr><tr><td>Sensitive data leakage via LLM output</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">15</td><td class="muted">AI &amp; Agentic Risks</td><td class="muted">AI / LLM</td></tr><tr><td>Insecure LLM tool / plugin use</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">15</td><td class="muted">AI &amp; Agentic Risks</td><td class="muted">AI / LLM</td></tr><tr><td>Excessive agency of autonomous agent</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">15</td><td class="muted">AI &amp; Agentic Risks</td><td class="muted">AI / LLM</td></tr><tr><td>Insufficient human oversight (high-risk AI)</td><td><span class="pill" style="background:#c0392b22;color:#c0392b">Critical</span></td><td class="mono">15</td><td class="muted">AI &amp; Agentic Risks</td><td class="muted">AI Risk</td></tr></tbody></table></div>
+  <div class="card"><h3>Framework coverage (from enrich)</h3><span class="chip">AI / LLM <b>7</b></span><span class="chip">AI Risk <b>6</b></span><span class="chip">General <b>4</b></span><span class="chip">Malware / Ransomware <b>1</b></span><span class="chip">Social Engineering <b>1</b></span><span class="chip">Vulnerability Mgmt <b>1</b></span><span class="chip">Cloud Security <b>1</b></span><span class="chip">Third-Party Risk <b>1</b></span><span class="chip">Physical Security <b>1</b></span><span class="chip">AI / ML <b>1</b></span>
+    <div class="note">Auto-tags are starting points mapped to MITRE ATT&CK/ATLAS and NIST/ISO. Review with owners before importing to Drata.</div></div>
+</main></div></body></html>
